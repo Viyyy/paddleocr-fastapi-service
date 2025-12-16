@@ -1,0 +1,9 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+python-multipart==0.0.9
+paddleocr==2.7.3
+# PaddlePaddle GPU 版本通常由基础镜像提供，但为了防止依赖检查报错，可以加上
+# paddlepaddle-gpu==2.6.1
+pymupdf==1.23.21  # 用于高效处理 PDF
+opencv-python-headless
+numpy<2

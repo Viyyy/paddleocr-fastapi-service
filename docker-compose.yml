@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  paddle-ocr:
+    build: .
+    # image: ocr-service-paddle-ocr:v2.7.3-gpu
+    container_name: paddle_ocr_service
+    restart: always
+    
+    # 读取环境变量文件
+    env_file:
+      - .env
+    
+    # 端口映射：宿主机端口:容器端口
+    # 注意：容器内部端口必须与 command 中的 --port 一致
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    
+    # 挂载配置
+    volumes:
+      # 挂载代码，方便热更新调试 (生产环境可去掉)
+      - ./main.py:/app/main.py
+      # 挂载模型缓存，实现模型持久化
+      - ./model_cache:/root/.paddleocr
+    
+    # 关键配置：增大共享内存
+    # Paddle 多进程(workers>1) 依赖共享内存，默认 64m 不够用，容易报错 Bus error
+    shm_size: '32gb'
+    
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - TZ=Asia/Shanghai
+      # 将端口变量透传给 Python 内部 (如果代码里需要用到)
+      - APP_PORT=${SERVER_PORT}
+
+    # === 核心：启动命令参数化 ===
+    # 使用 sh -c 确保环境变量在 shell 中被正确解析
+    command: >
+      sh -c "uvicorn main:app 
+      --host 0.0.0.0 
+      --port ${SERVER_PORT} 
+      --workers ${WORKER_COUNT}"
+
+    # === 核心：显卡资源分配 ===
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              # 这里引用 .env 中的变量
+              # 如果只要一张卡，删掉列表中第二个变量即可
+              device_ids: ['${HOST_GPU_1}']
+              # device_ids: ['${HOST_GPU_1}', '${HOST_GPU_2}']
+              capabilities: [gpu]
