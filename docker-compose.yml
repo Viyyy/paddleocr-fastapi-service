@@ -30,8 +30,7 @@ services:
     environment:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - TZ=Asia/Shanghai
-      # 将端口变量透传给 Python 内部 (如果代码里需要用到)
-      - APP_PORT=${SERVER_PORT}
+      # 其他变量如 SERVER_PORT, USE_GPU 等会自动从 .env 读取
 
     # === 核心：启动命令参数化 ===
     # 使用 sh -c 确保环境变量在 shell 中被正确解析
