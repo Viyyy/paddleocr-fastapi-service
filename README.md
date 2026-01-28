@@ -34,11 +34,12 @@
 
 本项目支持通过环境变量进行配置，建议在根目录创建 `.env` 文件：
 
-- `SERVER_PORT` (默认 `8001`)：宿主机暴露的端口（用于 Docker）。
-- `APP_PORT` (默认 `8000`)：服务内部监听端口。
-- `WORKER_COUNT` (默认 `1`)：工作进程数。
+- `SERVER_PORT` (默认 `8001`)：服务暴露端口（Docker 映射端口及内部启动端口）。
+- `WORKER_COUNT` (默认 `1`)：uvicorn 工作进程数。
 - `USE_GPU` (默认 `True`)：是否启用显卡加速。
-- `HOST_GPU_1`：宿主机显卡 ID（例如 `0`）。
+- `GPU_MEM` (默认 `4000`)：显存限制预留 (MB)。
+- `HOST_GPU_1`：宿主机显卡 ID（例如 `7`）。
+- `USE_ANGLE_CLS` (默认 `True`)：是否开启方向分类器。
 
 示例 `.env` 内容：
 
@@ -48,13 +49,15 @@ SERVER_PORT=8001
 WORKER_COUNT=1
 
 # === 显卡配置 ===
-HOST_GPU_1=0
+USE_GPU=True
+GPU_MEM=4000
+HOST_GPU_1=7
 
 # === Paddle配置 ===
-USE_GPU=True
+USE_ANGLE_CLS=True
 ```
 
-> **提示**：在多 GPU 环境下，可以通过 `HOST_GPU_1` 指定使用的显卡。
+> **提示**：在多 GPU 环境下，可以通过 `HOST_GPU_1` 指定使用的显卡。GPU 模式依赖 NVIDIA Container Toolkit。
 
 ---
 
@@ -115,13 +118,13 @@ python -m pip install -r requirements.txt
 2. **启动服务**
 
 ```powershell
-# 指定端口运行
-$env:APP_PORT = 8000; python main.py
+# 指定端口运行 (默认 8001)
+$env:SERVER_PORT = 8001; python main.py
 ```
 
 3. **访问文档**
 
-- http://localhost:8000/docs
+- http://localhost:8001/docs
 
 ### 方式二：Docker 部署 (推荐)
 
@@ -130,7 +133,7 @@ $env:APP_PORT = 8000; python main.py
 docker-compose up --build -d
 ```
 
-- http://localhost:@SERVER_PORT/docs
+- http://localhost:8001/docs (或你在 .env 中设置的 SERVER_PORT)
 
 如果需要 GPU 支持，请在 docker-compose 或 docker run 中映射并启用 NVIDIA runtime，并设置 `USE_GPU=true` 环境变量。
 
