@@ -10,6 +10,7 @@ from typing import List
 # 显卡控制主要通过 Docker 传递 CUDA_VISIBLE_DEVICES 环境变量
 USE_GPU = os.getenv("USE_GPU", "True").lower() == "true"
 GPU_MEM = int(os.getenv("GPU_MEM", "4000")) # 显存限制预留
+USE_ANGLE_CLS = os.getenv("USE_ANGLE_CLS", "True").lower() == "true"
 
 app = FastAPI(title="PaddleOCR Service", version="2.7.3", root_path="/api")
 
@@ -17,12 +18,12 @@ app = FastAPI(title="PaddleOCR Service", version="2.7.3", root_path="/api")
 # use_angle_cls: 是否加载分类模型
 # lang: 语言，默认中文 ch
 # use_gpu: 是否使用 GPU
-print(f"Initializing PaddleOCR... GPU={USE_GPU}")
+print(f"Initializing PaddleOCR... GPU={USE_GPU}, AngleCls={USE_ANGLE_CLS}")
 ocr_engine = PaddleOCR(
-    use_angle_cls=True, 
+    use_angle_cls=USE_ANGLE_CLS, 
     lang="ch", 
     use_gpu=USE_GPU, 
-    # gpu_mem=GPU_MEM,
+    gpu_mem=GPU_MEM,
     show_log=False
 )
 
@@ -156,7 +157,7 @@ def health_check():
 if __name__ == "__main__":
     import uvicorn
     # 获取端口和 Host 配置
-    port = int(os.getenv("APP_PORT", 8000))
+    port = int(os.getenv("SERVER_PORT", 8000))
     host = "0.0.0.0"
     print(f"Starting server on {host}:{port}")
     uvicorn.run("main:app", host=host, port=port)
